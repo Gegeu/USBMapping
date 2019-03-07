@@ -65,12 +65,14 @@ def servidordns():
                 return dns
         except Exception as erro:
                 print("Não foi possivel identificar o endereco: ", erro)
+		
 def memoriaram():
 	try:
 		for i in c.Win32_ComputerSystem():
-			mem = i.TotalPhysicalMemory
-			mem = int(mem)
-		return mem	
+			mem = int(i.TotalPhysicalMemory)
+			mem = (mem  / (1024*1024*1024))
+			
+		print(f'memoria total: {mem:.2f}', 'GB')
 	except Exception as erro:
 		print("Não foi possivel identificar o endereco: ", erro)
 			
@@ -82,4 +84,4 @@ print(placamae())
 print(versaowin())
 enderecoipv4()
 print(servidordns())
-print(memoriaram())
+memoriaram()
