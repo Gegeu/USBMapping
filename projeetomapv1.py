@@ -1,135 +1,150 @@
-import winreg
+import pymysql.cursors
 import wmi
-
-def valor_registro(key, subkey, value):
-	key = getattr(winreg, key)
-	handle = winreg.OpenKey(key, subkey)
-	(value, type) = winreg.QueryValueEx(handle, value)
-	return value
+import configparser
 
 c = wmi.WMI()
 
+config = configparser.ConfigParser()
+config.read("\\config.ini.txt")
 
-def processador():
-        try:
-                modeloprocessador = valor_registro(
-                        "HKEY_LOCAL_MACHINE", 
-                        "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
-                        "ProcessorNameString")
-                return modeloprocessador
-        except Exception as erro:
-                print("Não foi possivel identificar o processador: ", erro)
+nome_tecnico = config.get("section1", "nome_tecnico")
+
+def connect():
+    """ Connect to MySQL database """
+    try:
+        conn = pymysql.connect(host='testebanco.c40hxkoyiz9i.us-east-2.rds.amazonaws.com', 
+                                       db='testebanco',
+                                       user='root',
+                                       password='testeteste')
+   #     if conn.is_connected():
+     #       print('Connected to MySQL database')
+            
+        return conn
+    except Error as e:
+        print(e)
+
+
+def hw_Processador():
+            try:
+                    for interface in c.Win32_Processor():
+                        processador = interface.Name
+                    return processador
+            except Exception as erro:
+                    print("Não foi possivel identificar o modelo do processador: ", erro)
                 
-def nomepc():
-        try:
-                nome = valor_registro(
-                    "HKEY_LOCAL_MACHINE",
-                    "SYSTEM\\ControlSet001\\Control\\ComputerName\\ComputerName",
-                    "ComputerName")
-                return nome
-        except Exception as erro:
-                print("Não foi possivel identificar o hostname: ", erro)
+def sis_HostName():
+            try:
+                    for interface in c.Win32_ComputerSystem():
+                        hostname = interface.Caption
+                    return hostname
+            except Exception as erro:
+                    print("Não foi possivel identificar o hostname: ", erro)
 
-def placamae():
-        try:
-                mb = valor_registro(
-                        "HKEY_LOCAL_MACHINE",
-                        "HARDWARE\\DESCRIPTION\\System\\BIOS",
-                        "BaseBoardProduct")
-                return mb
-        except Exception as erro:
-                print("Não foi possivel identificar a placa mãe: ", erro)
+def hw_Modelo_PlacaMae():
+            try:
+                    for interface in c.Win32_BaseBoard():
+                        modelo = interface.Product
+                    return modelo
+            except Exception as erro:
+                    print("Não foi possivel identificar o modelo da placa mae: ", erro)
 
-def fabricantemb():
-        try:
-                mb = valor_registro(
-                        "HKEY_LOCAL_MACHINE",
-                        "HARDWARE\\DESCRIPTION\\System\\BIOS",
-                        "BaseBoardManufacturer")
-                return mb
-        except Exception as erro:
-                print("Não foi possivel identificar a fabricante da placa mãe: ", erro)
+def hw_Fabricante_PlacaMae():
+            try:
+                    for interface in c.Win32_BaseBoard():
+                        fabricante = interface.Manufacturer
+                    return fabricante
+            except Exception as erro:
+                    print("Não foi possivel identificar o fabricante da placa mae: ", erro)
 
-def nserie():
-	try:
-		for interface in c.Win32_BaseBoard():
-			serie = interface.SerialNumber
-		return serie
-	except Exception as erro:
-		print("Não foi possivel identificar o numero de serie: ", erro)
+def hw_NS_PlacaMae():
+            try:
+                    for interface in c.Win32_BaseBoard():
+                        serie = interface.SerialNumber
+                    return serie
+            except Exception as erro:
+                    print("Não foi possivel identificar o numero de serie da placa mae: ", erro)
 
-def versaowin():
-        try:
-                versao = valor_registro(
-                        "HKEY_LOCAL_MACHINE",
-                        "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
-                        "ProductName")
-                return versao
-        except Exception as erro:
-                print("Não foi possivel identificar a versão: ", erro)
+def sis_SistemaOperacional():
+            try:
+                    for interface in c.Win32_OperatingSystem():
+                        so = interface.Caption
+                    return so
+            except Exception as erro:
+                    print("Não foi possivel identificar o Sistema Operacional: ", erro)
 
-def datainstalacao():
-	try:
-		for interface in c.Win32_OperatingSystem():
-			data = interface.InstallDate
-		return data
-	except Exception as erro:
-		print("Não foi possivel identificar a data de instalacao: ", erro)
+def sis_Data_Instalacao():
+            try:
+                    for interface in c.Win32_OperatingSystem():
+                        data = interface.InstallDate
+                    return data
+            except Exception as erro:
+                    print("Não foi possivel identificar a data de instalacao: ", erro)
 
-def enderecoipv4():
-        try:
-                for interface in c.Win32_NetworkAdapterConfiguration (IPEnabled=1):
+def rede_IPV4():
+            try:
+                    for interface in c.Win32_NetworkAdapterConfiguration (IPEnabled=1):
                         ipv4 = interface.IPAddress[0] 
-                return ipv4
-        except Exception as erro:
-                print("Não foi possivel identificar o IPV4: ", erro)
+                    return ipv4
+            except Exception as erro:
+                    print("Não foi possivel identificar o IPV4: ", erro)
 
-def macaddress():
-        try:
-                for interface in c.Win32_NetworkAdapterConfiguration (IPEnabled=1):
+def rede_MacAddress():
+            try:
+                    for interface in c.Win32_NetworkAdapterConfiguration (IPEnabled=1):
                         mac = interface.MACAddress
-                return mac
-        except Exception as erro:
-                print("Não foi possivel identificar o Mac Address: ", erro)
+                    return mac
+            except Exception as erro:
+                    print("Não foi possivel identificar o Mac Address: ", erro)
 
-def servidordns():
-        try:
-                for interface in c.Win32_NetworkAdapterConfiguration (IPEnabled=1):
+def rede_DNS():
+            try:
+                    for interface in c.Win32_NetworkAdapterConfiguration (IPEnabled=1):
                         dns = interface.DNSServerSearchOrder[0]
-                return dns
-        except Exception as erro:
-                print("Não foi possivel identificar o DNS: ", erro)
+                    return dns
+            except Exception as erro:
+                    print("Não foi possivel identificar o DNS: ", erro)
 
-def memoriaram():
-	try:
-		for interface in c.Win32_ComputerSystem():
-			mem = int(interface.TotalPhysicalMemory)
-			mem = (mem  / (1024*1024*1024))
-		return mem	
-		#print(f'memoria total: {mem:.2f}', 'GB')
-	except Exception as erro:
-		print("Não foi possivel identificar o endereco: ", erro)
+def hw_Memoria_RAM():
+            try:
+                    for interface in c.Win32_ComputerSystem():
+                        mem = int(interface.TotalPhysicalMemory)
+                        mem = (mem  / (1024*1024*1024))
+                    return mem	
+                    #print(f'memoria total: {mem:.2f}', 'GB')
+            except Exception as erro:
+                    print("Não foi possivel identificar o endereco: ", erro)
 
-def espacoHD():
-	try:
-		for interface in c.Win32_LogicalDisk():
-			espaco = interface.Size
-		return espaco
-	except Exception as erro:
-		print("Não foi possivel identificar o tamanho do disco: ", erro)
+def hw_HD():
+            try:
+                    for interface in c.Win32_LogicalDisk(DriveType = 3):
+                        espaco = int(interface.Size)
+                        espaco = (espaco / (1024*1024*1024))
+                    return espaco
+            except Exception as erro:
+                    print("Não foi possivel identificar o tamanho do disco: ", erro)
 
 
-                
-	
-print("Processador:", processador())
-print("Hostname:", nomepc())
-print("Fabricante da placa mae:",fabricantemb())
-print("Modelo da placa mae:", placamae())
-print("Numero de serie da placa mae:", nserie())
-print("Sua versão do sistema é:", versaowin())
-print("A data de instalação é:", datainstalacao())
-print("Endereço IPV4:", enderecoipv4())
-print("Mac Address:", macaddress())
-print("Seu servidor DNS:", servidordns())
-print("Total de Memoria RAM: {:.2f}".format(memoriaram()), "GB" )
-print("Espaço total em disco:", espacoHD())
+def insert_nome(hw_Processador, hw_Fabricante_PlacaMae, hw_Modelo_PlacaMae, hw_NS_PlacaMae, sis_HostName, sis_SistemaOperacional, sis_Data_Instalacao, rede_IPV4, rede_MacAddress, rede_DNS, hw_Memoria_RAM, hw_HD, nome_tecnico):
+    query = "INSERT INTO maquina(processador, mb_fabricante, mb_modelo, mb_num_serie, sis_hostname, sis_versao_sistema, sis_data_instalacao, rede_ipv4, rede_macaddress, rede_srv_dns, memoria_ram, total_hd, nome_tecnico)VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    args = [hw_Processador], [hw_Fabricante_PlacaMae], [hw_Modelo_PlacaMae], [hw_NS_PlacaMae], [sis_HostName], [sis_SistemaOperacional], [sis_Data_Instalacao], [rede_IPV4], [rede_MacAddress], [rede_DNS], [hw_Memoria_RAM], [hw_HD], [nome_tecnico]
+ 
+    try:
+        conn = connect()
+ 
+        cursor = conn.cursor()
+        cursor.execute(query, args)
+ 
+        if cursor.lastrowid:
+            print('successo nome')
+        else:
+            print('erro ao ins nome')
+ 
+        conn.commit()
+    except Error as error:
+        print(error)
+ 
+    finally:
+        cursor.close()
+        conn.close()
+
+insert_nome(hw_Processador(), hw_Fabricante_PlacaMae(), hw_Modelo_PlacaMae(), hw_NS_PlacaMae(), sis_HostName(), sis_SistemaOperacional(), sis_Data_Instalacao(), rede_IPV4(), rede_MacAddress(), rede_DNS(), hw_Memoria_RAM(), hw_HD(), nome_tecnico)
