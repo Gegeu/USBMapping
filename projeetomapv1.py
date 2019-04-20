@@ -1,6 +1,9 @@
 import pymysql.cursors
 import wmi
 import configparser
+import csv
+import os.path
+import os
 
 c = wmi.WMI()
 
@@ -16,14 +19,39 @@ def connect():
                                        db='testebanco',
                                        user='root',
                                        password='testeteste')
-   #     if conn.is_connected():
-     #       print('Connected to MySQL database')
-            
+        
         return conn
-    except Error as e:
-        print(e)
+    except:
+        
+        with open('\\offline.csv', 'w', encoding='utf-8') as f:
+            try:
+                writer = csv.writer(f)
+                writer.writerow((hw_Processador(), hw_Fabricante_PlacaMae(), hw_Modelo_PlacaMae(), hw_NS_PlacaMae(), sis_HostName(), sis_SistemaOperacional(), sis_Data_Instalacao(), rede_IPV4(), rede_MacAddress(), rede_DNS(), hw_Memoria_RAM(), hw_HD(), nome_tecnico))
+                print('SEM CONEXAO! ARQUIVO CSV GERADO.')
+            finally:
+                f.close()
+    os.system("pause")
+    os._exit(0)
 
-
+if os.path.isfile('\\offline.csv'):
+    
+            try:
+                    off_csv = csv.reader(open('\\offline.csv', encoding='utf-8'), delimiter=',')
+                    for row in off_csv:
+                        if len(row) == 0:
+                            continue
+                        conn = connect()
+                        cursor = conn.cursor()
+                        query = "INSERT INTO maquina(processador, mb_fabricante, mb_modelo, mb_num_serie, sis_hostname, sis_versao_sistema, sis_data_instalacao, rede_ipv4, rede_macaddress, rede_srv_dns, memoria_ram, total_hd, nome_tecnico)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                        cursor.execute(query, row)                    
+                        conn.commit()
+                        print('Sucesso ao inserir maquina anterior.')
+                        cursor.close()
+                        conn.close()
+            except Exception as erro:
+                        print('erro csv: ', erro)          
+                                   
+                
 def hw_Processador():
             try:
                     for interface in c.Win32_Processor():
@@ -123,6 +151,7 @@ def hw_HD():
             except Exception as erro:
                     print("Não foi possivel identificar o tamanho do disco: ", erro)
 
+connect()
 
 def insert_nome(hw_Processador, hw_Fabricante_PlacaMae, hw_Modelo_PlacaMae, hw_NS_PlacaMae, sis_HostName, sis_SistemaOperacional, sis_Data_Instalacao, rede_IPV4, rede_MacAddress, rede_DNS, hw_Memoria_RAM, hw_HD, nome_tecnico):
     query = "INSERT INTO maquina(processador, mb_fabricante, mb_modelo, mb_num_serie, sis_hostname, sis_versao_sistema, sis_data_instalacao, rede_ipv4, rede_macaddress, rede_srv_dns, memoria_ram, total_hd, nome_tecnico)VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -135,13 +164,14 @@ def insert_nome(hw_Processador, hw_Fabricante_PlacaMae, hw_Modelo_PlacaMae, hw_N
         cursor.execute(query, args)
  
         if cursor.lastrowid:
-            print('successo nome')
+            print('Successo ao inserir maquina atual')
         else:
             print('erro ao ins nome')
  
         conn.commit()
     except Error as error:
-        print(error)
+
+        print(erro)
  
     finally:
         cursor.close()
