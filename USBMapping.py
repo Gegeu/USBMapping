@@ -12,6 +12,9 @@ config.read("\\config.ini.txt")
 
 nome_tecnico = config.get("section1", "nome_tecnico")
 
+def exclui_csv():
+    os.remove('\\offline.csv')
+    
 def connect():
     """ Connect to MySQL database """
     try:
@@ -36,21 +39,24 @@ def connect():
 if os.path.isfile('\\offline.csv'):
     
             try:
-                    off_csv = csv.reader(open('\\offline.csv', encoding='utf-8'), delimiter=',')
-                    for row in off_csv:
-                        if len(row) == 0:
-                            continue
-                        conn = connect()
-                        cursor = conn.cursor()
-                        query = "INSERT INTO maquina(processador, mb_fabricante, mb_modelo, mb_num_serie, sis_hostname, sis_versao_sistema, sis_data_instalacao, rede_ipv4, rede_macaddress, rede_srv_dns, memoria_ram, total_hd, nome_tecnico)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                        cursor.execute(query, row)                    
-                        conn.commit()
-                        print('Sucesso ao inserir maquina anterior.')
-                        cursor.close()
-                        conn.close()
+                    with open ('\\offline.csv', encoding='utf-8') as off:
+                        
+                        off_csv = csv.reader(off, delimiter=',')
+                        for row in off_csv:
+                            if len(row) == 0:
+                                continue
+                            conn = connect()
+                            cursor = conn.cursor()
+                            query = "INSERT INTO maquina(processador, mb_fabricante, mb_modelo, mb_num_serie, sis_hostname, sis_versao_sistema, sis_data_instalacao, rede_ipv4, rede_macaddress, rede_srv_dns, memoria_ram, total_hd, nome_tecnico)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                            cursor.execute(query, row)                    
+                            conn.commit()
+                            print('Sucesso ao inserir maquina anterior.')
+                            cursor.close()
+                            conn.close()
             except Exception as erro:
-                        print('erro csv: ', erro)          
-                                   
+                        print('erro csv: ', erro)
+            exclui_csv()
+
                 
 def hw_Processador():
             try:
@@ -152,7 +158,7 @@ def hw_HD():
                     print("Não foi possivel identificar o tamanho do disco: ", erro)
 
 connect()
-
+    
 def insert_nome(hw_Processador, hw_Fabricante_PlacaMae, hw_Modelo_PlacaMae, hw_NS_PlacaMae, sis_HostName, sis_SistemaOperacional, sis_Data_Instalacao, rede_IPV4, rede_MacAddress, rede_DNS, hw_Memoria_RAM, hw_HD, nome_tecnico):
     query = "INSERT INTO maquina(processador, mb_fabricante, mb_modelo, mb_num_serie, sis_hostname, sis_versao_sistema, sis_data_instalacao, rede_ipv4, rede_macaddress, rede_srv_dns, memoria_ram, total_hd, nome_tecnico)VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
     args = [hw_Processador], [hw_Fabricante_PlacaMae], [hw_Modelo_PlacaMae], [hw_NS_PlacaMae], [sis_HostName], [sis_SistemaOperacional], [sis_Data_Instalacao], [rede_IPV4], [rede_MacAddress], [rede_DNS], [hw_Memoria_RAM], [hw_HD], [nome_tecnico]
@@ -178,3 +184,5 @@ def insert_nome(hw_Processador, hw_Fabricante_PlacaMae, hw_Modelo_PlacaMae, hw_N
         conn.close()
 
 insert_nome(hw_Processador(), hw_Fabricante_PlacaMae(), hw_Modelo_PlacaMae(), hw_NS_PlacaMae(), sis_HostName(), sis_SistemaOperacional(), sis_Data_Instalacao(), rede_IPV4(), rede_MacAddress(), rede_DNS(), hw_Memoria_RAM(), hw_HD(), nome_tecnico)
+
+
