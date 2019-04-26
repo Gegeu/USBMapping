@@ -11,6 +11,7 @@ config = configparser.ConfigParser()
 config.read("\\config.ini.txt")
 
 nome_tecnico = config.get("section1", "nome_tecnico")
+map_local = config.get("section1", "local")
 
 def exclui_csv():
     os.remove('\\offline.csv')
@@ -18,10 +19,10 @@ def exclui_csv():
 def connect():
     """ Connect to MySQL database """
     try:
-        conn = pymysql.connect(host='testebanco.c40hxkoyiz9i.us-east-2.rds.amazonaws.com', 
-                                       db='testebanco',
+        conn = pymysql.connect(host='127.0.0.1', 
+                                       db='teste-relac',
                                        user='root',
-                                       password='testeteste')
+                                       password='testeteste', autocommit = True)
         
         return conn
     except:
@@ -157,25 +158,61 @@ def hw_HD():
             except Exception as erro:
                     print("Não foi possivel identificar o tamanho do disco: ", erro)
 
+def sis_Dominio():
+            try:
+                    for interface in c.Win32_ComputerSystem():
+                        dominio = interface.Domain
+                    return dominio
+            except Exception as erro:
+                    print("Não foi possivel identificar o dominio: ", erro)
+
+def sis_Arquitetura():
+            try:
+                    for interface in c.Win32_OperatingSystem():
+                        arquitetura = interface.OSArchitecture
+                    return arquitetura
+            except Exception as erro:
+                    print("Não foi possivel identificar a arquitetura: ", erro)
+def sis_Usuario_Atual():
+            try:
+                    for interface in c.Win32_ComputerSystem():
+                        usu_atual = interface.UserName
+                    return usu_atual
+            except Exception as erro:
+                    print("Não foi possivel identificar o usuario atual: ", erro)
+
+
 connect()
+
     
-def insert_nome(hw_Processador, hw_Fabricante_PlacaMae, hw_Modelo_PlacaMae, hw_NS_PlacaMae, sis_HostName, sis_SistemaOperacional, sis_Data_Instalacao, rede_IPV4, rede_MacAddress, rede_DNS, hw_Memoria_RAM, hw_HD, nome_tecnico):
-    query = "INSERT INTO maquina(processador, mb_fabricante, mb_modelo, mb_num_serie, sis_hostname, sis_versao_sistema, sis_data_instalacao, rede_ipv4, rede_macaddress, rede_srv_dns, memoria_ram, total_hd, nome_tecnico)VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    args = [hw_Processador], [hw_Fabricante_PlacaMae], [hw_Modelo_PlacaMae], [hw_NS_PlacaMae], [sis_HostName], [sis_SistemaOperacional], [sis_Data_Instalacao], [rede_IPV4], [rede_MacAddress], [rede_DNS], [hw_Memoria_RAM], [hw_HD], [nome_tecnico]
+def insert_nome(hw_Processador, sis_HostName, hw_Modelo_PlacaMae, hw_Fabricante_PlacaMae, hw_NS_PlacaMae, sis_SistemaOperacional, sis_Data_Instalacao, rede_IPV4, rede_MacAddress, rede_DNS, hw_Memoria_RAM, hw_HD, sis_Dominio, sis_Arquitetura, sis_Usuario_Atual, nome_tecnico, map_local):
+    query_local = "INSERT INTO mapeamento(map_nome_tecnico, map_local)VALUES(%s, %s)"
+    args_local = [nome_tecnico], 4
+
+    
  
     try:
         conn = connect()
  
         cursor = conn.cursor()
-        cursor.execute(query, args)
- 
+        cursor.execute(query_local, args_local)
+##        conn.commit()
+        
+        print(cursor.lastrowid)
+
+        fk = cursor.lastrowid
+        print('fk: ', fk)
+        query_sis = """INSERT INTO sistema_info(mapeamento_id_mapeamento, sis_data_instalacao)VALUES(%s, %s)"""
+        args_sis = [fk], [sis_Data_Instalacao]
+        cursor.execute(query_sis, args_sis)
+        
         if cursor.lastrowid:
             print('Successo ao inserir maquina atual')
         else:
             print('erro ao ins nome')
  
-        conn.commit()
-    except Error as error:
+##        conn.commit()
+    except Error as erro:
 
         print(erro)
  
@@ -183,6 +220,4 @@ def insert_nome(hw_Processador, hw_Fabricante_PlacaMae, hw_Modelo_PlacaMae, hw_N
         cursor.close()
         conn.close()
 
-insert_nome(hw_Processador(), hw_Fabricante_PlacaMae(), hw_Modelo_PlacaMae(), hw_NS_PlacaMae(), sis_HostName(), sis_SistemaOperacional(), sis_Data_Instalacao(), rede_IPV4(), rede_MacAddress(), rede_DNS(), hw_Memoria_RAM(), hw_HD(), nome_tecnico)
-
-
+insert_nome(hw_Processador, sis_HostName(), hw_Modelo_PlacaMae, hw_Fabricante_PlacaMae, hw_NS_PlacaMae, sis_SistemaOperacional, sis_Data_Instalacao(), rede_IPV4, rede_MacAddress, rede_DNS, hw_Memoria_RAM, hw_HD, sis_Dominio, sis_Arquitetura, sis_Usuario_Atual, nome_tecnico, map_local)
