@@ -53,11 +53,9 @@ if os.path.isfile('\\offline.csv'):
                             print('Sucesso ao inserir maquina anterior.')
                             cursor.close()
                             conn.close()
+                    exclui_csv()
             except Exception as erro:
                         print('erro csv: ', erro)
-            finally:
-                exclui_csv()
-#             exclui_csv()
 
                 
 def hw_Processador():
