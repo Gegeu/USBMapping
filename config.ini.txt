@@ -1,3 +1,0 @@
-[section1]
-nome_tecnico: Algeu
-local: Lab 3
