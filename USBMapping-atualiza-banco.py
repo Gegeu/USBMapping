@@ -39,5 +39,7 @@ if os.path.isfile('\\offline.csv'):
                     exclui_csv()
             except Exception as erro:
                         print('erro csv: ', erro)
+os.system("pause")
+os._exit(0)
 
 connect()
