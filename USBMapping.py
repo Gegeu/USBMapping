@@ -2,13 +2,12 @@ import pymysql.cursors
 import wmi
 import configparser
 import csv
-import os.path
 import os
 
 c = wmi.WMI()
 
 config = configparser.ConfigParser()
-config.read("\\config.ini.txt")
+config.read("\\config.ini")
 
 nome_tecnico = config.get("section1", "nome_tecnico")
 local_mapeamento = config.get("section1", "local")
@@ -207,3 +206,5 @@ def insert_nome(hw_Processador, hw_Fabricante_PlacaMae, hw_Modelo_PlacaMae, hw_N
         conn.close()
 
 insert_nome(hw_Processador(), hw_Fabricante_PlacaMae(), hw_Modelo_PlacaMae(), hw_NS_PlacaMae(), sis_HostName(), sis_SistemaOperacional(), sis_Data_Instalacao(), sis_Dominio(), sis_Arquitetura(), sis_Usuario_Atual(), rede_IPV4(), rede_MacAddress(), rede_DNS(), hw_Memoria_RAM(), hw_HD(), nome_tecnico, local_mapeamento)
+os.system("pause")
+os._exit(0)
